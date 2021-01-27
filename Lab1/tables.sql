@@ -45,7 +45,8 @@ FOREIGN KEY (course) REFERENCES Courses(code),
 FOREIGN KEY (classification) REFERENCES Classifications(name) );
 
 --MandatoryProgram
-CREATE TABLE MandatoryProgram(course CHAR(6) ,
+CREATE TABLE MandatoryProgram(
+course CHAR(6) ,
 program TEXT,PRIMARY KEY(course,program),
 FOREIGN KEY(course) REFERENCES Courses(code));
 
