@@ -55,8 +55,28 @@ CREATE VIEW Registrations AS
  (SELECT student, course, 'waiting' AS status
  FROM WaitingList));
 
-
-
-
  --View UnreadMandatory
-CREATE UnreadMandatory AS SELECT Students
+CREATE VIEW StudentMandatory AS SELECT Students.idnr,MandatoryProgram.Course FROM Students JOIN MandatoryProgram ON Students.Program=MandatoryProgram.program UNION
+SELECT StudentBranches.student,MandatoryBranch.course
+FROM StudentBranches JOIN MandatoryBranch ON StudentBranches.program=MandatoryBranch.program;
+
+CREATE VIEW UnreadMandatory(student,course) AS SELECT idnr,course FROM StudentMandatory a WHERE NOT EXISTS (SELECT 1 FROM PassedCourses b WHERE a.idnr=b.student);
+
+--View path to graduation
+
+SELECT student, SUM(credits) AS totalcredits FROM PassedCourses GROUP BY student; --totalcredits
+SELECT student, COUNT(*) AS mandatoryLeft FROM UnreadMandatory GROUP BY student;--mandatoryLeft
+
+--MathCredits
+SELECT PassedCourses.student,SUM(PassedCourses.credits) AS mathCredits
+ FROM PassedCourses INNER JOIN Classified ON PassedCourses.course=Classified.course WHERE(Classified.classification='math') GROUP BY student;
+
+--ResearchCredits
+SELECT PassedCourses.student,SUM(PassedCourses.credits) AS researchCredits
+ FROM PassedCourses INNER JOIN Classified ON PassedCourses.course=Classified.course WHERE(Classified.classification='research') GROUP BY student;
+
+--SeminarCredits
+SELECT PassedCourses.student,COUNT(PassedCourses.credits) AS seminarCourses
+  FROM PassedCourses INNER JOIN Classified ON PassedCourses.course=Classified.course WHERE(Classified.classification='seminar') GROUP BY student;
+
+--qualified
