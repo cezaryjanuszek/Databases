@@ -2,7 +2,7 @@
 CREATE TABLE Students(
   idnr CHAR(10) PRIMARY KEY, 
   name TEXT NOT NULL, 
-  login CHAR(10),
+  login CHAR(10) NOT NULL,
   program TEXT NOT NULL);
 
 --branches table

@@ -26,7 +26,7 @@ SET client_min_messages TO NOTICE;
 
 -- Load your files (they need to be in the same folder as this script!)
 \i tables.sql
---\i views.sql
+\i views.sql
 \i inserts.sql
 
 ------------------
@@ -35,9 +35,9 @@ SET client_min_messages TO NOTICE;
 
 -- Uncomment the following (or add your own) SELECTs to print queries when you run this file: 
 
--- SELECT idnr, name, login, program, branch FROM BasicInformation;
--- SELECT student, course, grade, credits FROM FinishedCourses;
--- SELECT student, course, credits FROM PassedCourses;
--- SELECT student, course, status FROM Registrations;
--- SELECT student, course FROM UnreadMandatory;
--- SELECT student, totalCredits, mandatoryLeft, mathCredits, researchCredits, seminarCourses, qualified FROM PathToGraduation;
+ SELECT idnr, name, login, program, branch FROM BasicInformation;
+ SELECT student, course, grade, credits FROM FinishedCourses;
+ SELECT student, course, credits FROM PassedCourses;
+ SELECT student, course, status FROM Registrations;
+ SELECT student, course FROM UnreadMandatory;
+ SELECT student, totalCredits, mandatoryLeft, mathCredits, researchCredits, seminarCourses, qualified FROM PathToGraduation;

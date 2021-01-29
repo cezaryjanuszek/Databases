@@ -1,36 +1,3 @@
---Views
---BasicInformation(idnr, name, login, program, branch): for all students, their national identification number, name,
-  --  login, their program and the branch (if any). The branch column is the only column in any of the views that is
-  --allowed to contain NULL.
---FinishedCourses(student, course, grade, credits): for all students, all finished courses, along with their codes, grades
-  --  ('U', '3', '4' or '5') and number of credits. The type of the grade should be a character type, e.g. CHAR(1).
---PassedCourses(student, course, credits): for all students, all passed courses, i.e. courses finished with a grade other
-    --than 'U', and the number of credits for those courses. This view is intended as a helper view towards later views
-     --(and for part 4), and will not be directly used by your application.
---Registrations(student, course, status): all registered and waiting students for all courses, along with their waiting
-    --status ('registered' or 'waiting').
---UnreadMandatory(student, course): for all students, the mandatory courses (branch and program) they have not passed
-    --yet. This view is intended as a helper view towards the PathToGraduation view, and will not be directly used by
-    --your application.
---PathToGraduation(student, totalCredits, mandatoryLeft, mathCredits, researchCredits, seminarCourses, qualified):
-    --for all students, their path to graduation, i.e. a view with columns for:
---student: the student's national identification number;
---totalCredits: the number of credits they have taken;
---mandatoryLeft: the number of courses that are mandatory for a branch or a program they have yet to read;
---mathCredits: the number of credits they have taken in courses that are classified as math courses;
---researchCredits: the number of credits they have taken in courses that are classified as research courses;
---seminarCourses: the number of seminar courses they have passed;
---qualified: whether or not they qualify for graduation. The SQL type of this field should be BOOLEAN (i.e. TRUE or FALSE).
---Hint1: For the last view, make a query for the data of each column and when they all work, put them in a WITH clause
-    --and use a chain of (left) outer joins to combine them.
-
---Hint2: Use COALESCE to replace null values with 0 (e.g. COALESCE(totalCredits,0) AS totalCredits). Also, keep in mind
-    --that comparing null values with anything gives UNKNOWN!
-
---Hint3: A query containing student/classification/credit with a row for each classification of each course every
-    --student has passed may be useful.
-
---Make sure that your views use the right names of columns! Use AS to name a column.
 
 --View BasicInformation(idnr, name, login, program, branch)
 CREATE VIEW BasicInformation AS
@@ -56,27 +23,46 @@ CREATE VIEW Registrations AS
  FROM WaitingList));
 
  --View UnreadMandatory
-CREATE VIEW StudentMandatory AS SELECT Students.idnr,MandatoryProgram.Course FROM Students JOIN MandatoryProgram ON Students.Program=MandatoryProgram.program UNION
-SELECT StudentBranches.student,MandatoryBranch.course
-FROM StudentBranches JOIN MandatoryBranch ON StudentBranches.program=MandatoryBranch.program;
 
-CREATE VIEW UnreadMandatory(student,course) AS SELECT idnr,course FROM StudentMandatory a WHERE NOT EXISTS (SELECT 1 FROM PassedCourses b WHERE a.idnr=b.student);
+
+CREATE VIEW UnreadMandatory AS
+WITH StudentMandatory AS
+  (SELECT Students.idnr as student,MandatoryProgram.course FROM Students RIGHT OUTER JOIN MandatoryProgram ON Students.program=MandatoryProgram.program
+  UNION
+  SELECT StudentBranches.student,MandatoryBranch.course
+  FROM StudentBranches INNER JOIN MandatoryBranch USING(branch,program))
+SELECT student,course FROM StudentMandatory EXCEPT (SELECT student, course FROM PassedCourses);
+
 
 --View path to graduation
-
-SELECT student, SUM(credits) AS totalcredits FROM PassedCourses GROUP BY student; --totalcredits
-SELECT student, COUNT(*) AS mandatoryLeft FROM UnreadMandatory GROUP BY student;--mandatoryLeft
-
---MathCredits
-SELECT PassedCourses.student,SUM(PassedCourses.credits) AS mathCredits
- FROM PassedCourses INNER JOIN Classified ON PassedCourses.course=Classified.course WHERE(Classified.classification='math') GROUP BY student;
-
---ResearchCredits
-SELECT PassedCourses.student,SUM(PassedCourses.credits) AS researchCredits
- FROM PassedCourses INNER JOIN Classified ON PassedCourses.course=Classified.course WHERE(Classified.classification='research') GROUP BY student;
-
---SeminarCredits
-SELECT PassedCourses.student,COUNT(PassedCourses.credits) AS seminarCourses
-  FROM PassedCourses INNER JOIN Classified ON PassedCourses.course=Classified.course WHERE(Classified.classification='seminar') GROUP BY student;
-
---qualified
+CREATE VIEW PathToGraduation AS
+WITH 
+  TotalCredits AS 
+    (SELECT student, SUM(credits) AS total_credits FROM PassedCourses GROUP BY student),
+  MandatoryLeft AS 
+    (SELECT UnreadMandatory.student AS student, COUNT(*) AS mandatory_count FROM UnreadMandatory GROUP BY student),
+  MathCredits AS 
+    (SELECT PassedCourses.student AS student ,SUM(PassedCourses.credits) AS math_credits
+      FROM PassedCourses INNER JOIN Classified ON PassedCourses.course=Classified.course 
+      WHERE(Classified.classification='math') GROUP BY student),
+  ResearchCredits AS 
+    (SELECT PassedCourses.student AS student,SUM(PassedCourses.credits) AS research_credits 
+      FROM PassedCourses INNER JOIN Classified ON PassedCourses.course=Classified.course 
+      WHERE(Classified.classification='research') GROUP BY student),
+  SeminarCredits AS 
+    (SELECT PassedCourses.student AS student,COUNT(PassedCourses.credits) AS seminar_count
+      FROM PassedCourses INNER JOIN Classified ON PassedCourses.course=Classified.course 
+      WHERE(Classified.classification='seminar') GROUP BY student),
+  RecommendedBranchCredits AS
+    (SELECT StudentBranches.student, RecommendedBranch.course, Courses.credits AS recommendedBranchCredits FROM 
+      (StudentBranches JOIN RecommendedBranch USING(branch,program)) JOIN Courses ON course=code
+      INTERSECT (SELECT * FROM PassedCourses)),
+  allCredits AS
+    (SELECT idnr AS student, COALESCE(total_credits,0) AS totalCredits, COALESCE(mandatory_count,0) AS mandatoryLeft, 
+    COALESCE(math_credits,0) AS mathCredits, COALESCE(research_credits,0) AS researchCredits, COALESCE(seminar_count,0) AS seminarCourses, 
+    COALESCE(recommendedBranchCredits,0) AS recommendedBranchCredits
+    FROM Students LEFT JOIN (TotalCredits NATURAL FULL JOIN MandatoryLeft NATURAL FULL JOIN MathCredits NATURAL FULL JOIN 
+    ResearchCredits NATURAL FULL JOIN SeminarCredits NATURAL FULL JOIN RecommendedBranchCredits) on idnr=student)
+SELECT DISTINCT student, totalCredits, mandatoryLeft, mathCredits, researchCredits, seminarCourses,
+(mandatoryLeft=0 AND mathCredits>=20 AND researchCredits>=10 AND seminarCourses>=1 AND recommendedBranchCredits>=10) AS qualified 
+FROM allCredits ORDER BY student ASC;
