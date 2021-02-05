@@ -1,0 +1,59 @@
+Departments(_dname_,d_abbreviation)
+
+Programs(_pname_,pabbreviation)
+
+ProgramInDepartment(_program_,_department_)
+    program->Program.pname
+    department->Department.dname
+
+Branches(_bname_,_program_)
+    program->Programs.pname
+
+Courses(_code_,name,credits,department)
+    department -> Departments.dname
+
+Prerequisites(_course1_,_course2_)
+    course1-> Courses.code
+    course2 -> Courses.code
+
+Classifications(_name_)
+
+Classified(_course_,_classification_)
+    course -> Courses.code
+    classification -> Classification.name
+
+LimitedCourses(_course_,capacity)
+    course -> Courses.code
+
+WaitingList(_student_,_course_,position)
+    student -> Students.idnr
+    course -> Courses.code
+
+Registered(_student_,_course_)
+    student -> Students.idnr
+    course -> Courses.code
+
+StudentBranches(_student_,branch)
+    student -> Students.idnr
+    branch -> Branches.bname
+
+Students(_idnr_,name,login)
+
+MandatoryProgram(_program_,_course_)
+        program->Program.pname
+        course->Course.code
+
+MandatoryBranch(_branch_,_course_)
+    branch->Branches.bname
+    course->Course.code
+
+RecommendedBranch(_branch_,_courseCode_)
+    branch->Branches.bname
+    coursCode->Course.code
+
+Taken(_student_,_course_,grade)
+    student->Students.idnr
+    course->Courses.code
+
+
+
