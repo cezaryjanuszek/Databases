@@ -16,7 +16,8 @@ CREATE TABLE Courses (
 code CHAR(6) PRIMARY KEY,
 name TEXT NOT NULL,
 credits FLOAT NOT NULL,
-department TEXT NOT NULL);
+department TEXT NOT NULL,
+CONSTRAINT nonNegative_credits CHECK (credits >= 0));
 
 --LimitedCourses(code, capacity)
 CREATE TABLE LimitedCourses(code CHAR(6) PRIMARY KEY,

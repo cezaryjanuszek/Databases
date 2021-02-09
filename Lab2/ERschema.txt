@@ -1,4 +1,4 @@
-Departments(_dname_,d_abbreviation)
+Departments(_dname_,dabbreviation)
 
 Programs(_pname_,pabbreviation)
 
