@@ -1,0 +1,69 @@
+Domain(dname, dabbreviation, pname, pabbreviation, bname, code, course_name, credits, 
+        idnr, sname, login, classif_name, prereq_code, capacity, position, grade)
+
+dname -> dabbreviation
+dabbreviation -> dname
+pname -> pabbreviation
+idnr -> sname login
+lognîn -> idnr
+idnr -> pname bname
+code -> course_name credits
+code -> dname
+code -> capacity
+code -> classif_name
+code -> prereq_code
+idnr code -> position
+code position -> idnr
+idnr code -> grade
+
+
+//BCNF NORMALIZATION
+
+1) Decompose using dname -> dabbreviation:
+Departments(dname, dabbreviation) already in BCNF
+key: dname
+dabbreviation is UNIQUE
+
+remaining domain:
+Domain2(dname, pname, pabbreviation, bname, code, course_name, credits, idnr, sname, login, classif_name, prereq_code, capacity, position, grade)
+
+2) Decompose using pname -> pabbreviation:
+Programs(pname, pabbreviation) already in BCNF
+key: pname
+
+remaining domain:
+Domain3(dname, pname, bname, code, course_name, credits, idnr, sname, login, classif_name, prereq_code, capacity, position, grade)
+
+3) Decompose using idnr -> sname login:
+Students(idnr, sname, login, pname, bname) already in BCNF
+key: idnr
+login is UNIQUE
+
+remaining domain:
+Domain4(idnr, code, course_name, credits, classif_name, prereq_code, capacity, position, grade)
+
+4) Decompose using code -> course_name credits:
+Courses(code, course_name, credits, classif_name, capacity, prereq_code) already in BCNF
+key: code
+
+remaining domain:
+Domain5(idnr, code, position, grade)
+
+5) Decompose using idnr code -> position:
+CoursesWithGradeAndPosition(idnr, code, position, grade) not in BCNF and Taken(idnr, code, grade) already in BCNF
+decompose using idnr code -> grade
+taken(idnr,code,grade)
+waitinglist(idnt,code,position)
+
+
+We normalize CoursesWithGradeAndPosition - decompose using code position -> idnr
+WaitingList(idnr, code, position) already in BCNF
+keys: idnr, code
+position is UNIQUE
+
+remaining domain:
+Domain6(code, position, grade)
+
+
+
+
