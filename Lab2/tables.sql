@@ -1,12 +1,3 @@
---students table
-CREATE TABLE Students(
-  idnr CHAR(10) PRIMARY KEY, 
-  name TEXT NOT NULL, 
-  login CHAR(10) UNIQUE NOT NULL,
-  program TEXT NOT NULL,
-  CONSTRAINT programChoice UNIQUE (idnr, program),
-  FOREIGN KEY (program) REFERENCES Programs(name));
-
 --departments table
 CREATE TABLE Departments(
     name TEXT PRIMARY KEY,
@@ -17,13 +8,22 @@ CREATE TABLE Programs(
     name TEXT PRIMARY KEY,
     abbreviation CHAR(6) NOT NULL);
 
+--students table
+CREATE TABLE Students(
+  idnr CHAR(10) PRIMARY KEY, 
+  name TEXT NOT NULL, 
+  login CHAR(10) UNIQUE NOT NULL,
+  program TEXT NOT NULL,
+  CONSTRAINT programChoice UNIQUE (idnr, program),
+  FOREIGN KEY (program) REFERENCES Programs(name));
+
 --programindepartment table
 CREATE TABLE ProgramInDepartment(
     program TEXT NOT NULL ,
     department TEXT NOT NULL,
     PRIMARY KEY(program, department),
     FOREIGN KEY (program) REFERENCES Programs(name),
-    FOREIGN KEY (department REFERENCES Departments(name));
+    FOREIGN KEY (department) REFERENCES Departments(name));
 
 --branches table
 CREATE TABLE Branches (
@@ -61,7 +61,7 @@ CREATE TABLE StudentBranches (
 student CHAR(10) PRIMARY KEY,
 branch TEXT NOT NULL,
 program TEXT NOT NULL,
-FOREIGN KEY (student, program) REFERENCES Students(idnr,program),
+FOREIGN KEY (student,program) REFERENCES Students(idnr,program),
 FOREIGN KEY (branch) REFERENCES Branches(name));
 
 --Classification table
