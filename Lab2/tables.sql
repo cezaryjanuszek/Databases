@@ -62,7 +62,7 @@ student CHAR(10) PRIMARY KEY,
 branch TEXT NOT NULL,
 program TEXT NOT NULL,
 FOREIGN KEY (student,program) REFERENCES Students(idnr,program),
-FOREIGN KEY (branch) REFERENCES Branches(name));
+FOREIGN KEY (branch,program) REFERENCES Branches);
 
 --Classification table
 CREATE TABLE Classifications(
