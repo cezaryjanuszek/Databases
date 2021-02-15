@@ -27,29 +27,33 @@ LimitedCourses(_course_,capacity)
 
 WaitingList(_student_,_course_,position)
     student -> Students.idnr
-    course -> Courses.code
+    course -> LimitedCourses.course
 
 Registered(_student_,_course_)
     student -> Students.idnr
     course -> Courses.code
 
-StudentBranches(_student_,branch)
+StudentBranches(_student_,branch,program)
     student -> Students.idnr
     branch -> Branches.bname
+    program -> Branches.program
 
-Students(_idnr_,name,login)
+Students(_idnr_,name,login,program)
+    program -> Programs.pname
 
 MandatoryProgram(_program_,_course_)
         program->Program.pname
         course->Course.code
 
-MandatoryBranch(_branch_,_course_)
+MandatoryBranch(_branch_,_program_,_course_)
     branch->Branches.bname
+    program->Branches.program
     course->Course.code
 
-RecommendedBranch(_branch_,_courseCode_)
+RecommendedBranch(_branch_,_program_,_courseCode_)
     branch->Branches.bname
-    coursCode->Course.code
+    program->Branches.program
+    courseCode->Course.code
 
 Taken(_student_,_course_,grade)
     student->Students.idnr

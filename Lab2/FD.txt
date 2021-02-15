@@ -1,17 +1,16 @@
 Domain(dname, dabbreviation, pname, pabbreviation, bname, code, course_name, credits, 
-        idnr, sname, login, classif_name, prereq_code, capacity, position, grade)
+        idnr, sname, login, classif_name, capacity, position, grade)
 
+Functional dependencies:
 dname -> dabbreviation
 dabbreviation -> dname
 pname -> pabbreviation
 idnr -> sname login
-lognîn -> idnr
+login -> idnr
 idnr -> pname bname
 code -> course_name credits
 code -> dname
 code -> capacity
-code -> classif_name
-code -> prereq_code
 idnr code -> position
 code position -> idnr
 idnr code -> grade
@@ -25,44 +24,40 @@ key: dname
 dabbreviation is UNIQUE
 
 remaining domain:
-Domain2(dname, pname, pabbreviation, bname, code, course_name, credits, idnr, sname, login, classif_name, prereq_code, capacity, position, grade)
+Domain2(dname, pname, pabbreviation, bname, code, course_name, credits, idnr, sname, login, classif_name, capacity, position, grade)
 
 2) Decompose using pname -> pabbreviation:
 Programs(pname, pabbreviation) already in BCNF
 key: pname
 
 remaining domain:
-Domain3(dname, pname, bname, code, course_name, credits, idnr, sname, login, classif_name, prereq_code, capacity, position, grade)
+Domain3(dname, pname, bname, code, course_name, credits, idnr, sname, login, classif_name, capacity, position, grade)
 
 3) Decompose using idnr -> sname login:
 Students(idnr, sname, login, pname, bname) already in BCNF
 key: idnr
 login is UNIQUE
 
+
 remaining domain:
-Domain4(idnr, code, course_name, credits, classif_name, prereq_code, capacity, position, grade)
+Domain4(idnr, code, dname, course_name, credits, classif_name, capacity, position, grade)
 
 4) Decompose using code -> course_name credits:
-Courses(code, course_name, credits, classif_name, capacity, prereq_code) already in BCNF
+Courses(code, course_name, dname, credits, capacity) already in BCNF
 key: code
 
 remaining domain:
-Domain5(idnr, code, position, grade)
+Domain5(idnr, code, position, grade,classif_name)
 
 5) Decompose using idnr code -> position:
-CoursesWithGradeAndPosition(idnr, code, position, grade) not in BCNF and Taken(idnr, code, grade) already in BCNF
-decompose using idnr code -> grade
-taken(idnr,code,grade)
-waitinglist(idnt,code,position)
-
-
-We normalize CoursesWithGradeAndPosition - decompose using code position -> idnr
-WaitingList(idnr, code, position) already in BCNF
+RegisteredCourses(idnr, code, position, grade) already in BCNF
 keys: idnr, code
-position is UNIQUE
+(code, position) is UNIQUE
 
+6)
 remaining domain:
-Domain6(code, position, grade)
+Classified(idnr, code, classif_name)
+keys: idnr, code, classif_name
 
 
 
