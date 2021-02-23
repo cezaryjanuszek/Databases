@@ -1,8 +1,8 @@
 --view courseQueuePositions (what difference with WaitingList?)
-CREATE VIEW  courseQueuePositions AS
+CREATE OR REPLACE VIEW  courseQueuePositions AS
     SELECT course, student, position AS place FROM WaitingList;
 
---trigger for registering students
+--REGISTRATION TRIGGER
 CREATE OR REPLACE FUNCTION registerStudent () RETURNS TRIGGER AS $$
     DECLARE
     nbOfStudentsInCourse INT;
@@ -14,12 +14,15 @@ CREATE OR REPLACE FUNCTION registerStudent () RETURNS TRIGGER AS $$
 
         IF (EXISTS (SELECT student, course FROM Registrations WHERE student=NEW.student AND course=NEW.course) ) THEN
             RAISE EXCEPTION 'ERROR: this student is already in the registrations for this course!';
+
         ELSEIF (EXISTS (SELECT student, course FROM PassedCourses WHERE student=NEW.student AND course=NEW.course) ) THEN
                     RAISE EXCEPTION 'ERROR: this student has already passed this course!';
+
         ELSEIF ( EXISTS (WITH a AS (SELECT (prereq_code) FROM Prerequisites WHERE(code=NEW.course)),
                      b AS (select (course) FROM PassedCourses WHERE(student=NEW.student AND (course IN(SELECT prereq_code FROM a))))
                      SELECT (prereq_code) FROM a WHERE (prereq_code NOT IN(SELECT course FROM b)))) THEN
             RAISE EXCEPTION 'ERROR: this student did not meet all the prerequisites for this course!';
+            
         ELSEIF (EXISTS (SELECT code FROM LimitedCourses WHERE code=NEW.course) ) THEN
             limitedCapacity := (SELECT capacity FROM LimitedCourses WHERE code=NEW.course);
             IF (nbOfStudentsInCourse >= limitedCapacity) THEN
@@ -38,17 +41,35 @@ CREATE OR REPLACE FUNCTION registerStudent () RETURNS TRIGGER AS $$
     END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS addRegistration ON Registrations;
+
 CREATE TRIGGER addRegistration 
     INSTEAD OF INSERT ON Registrations
     FOR EACH ROW 
     EXECUTE FUNCTION registerStudent ();
 
---BRUDNOPIS: prerequisites for registration
---SELECT prereq_code FROM Prerequisites WHERE code=NEW.course
+--UNREGISTRATION TRIGGER
+CREATE OR REPLACE FUNCTION unregisterStudent () RETURNS TRIGGER AS $$
+    DECLARE 
+        studentStatus TEXT;
+    BEGIN
+        studentStatus := (SELECT status FROM Registrations WHERE student=OLD.student AND course=OLD.course);
+        IF (NOT EXISTS (SELECT student, course FROM Registrations WHERE student=OLD.student AND course=OLD.course)) THEN
+            RAISE EXCEPTION 'ERROR: this student is not in the registrations for this course!';
 
---SELECT course FROM PassedCourses WHERE student=NEW.student;
+        ELSEIF (studentStatus = 'registered') THEN
+            DELETE FROM Registered WHERE student=OLD.student AND course=OLD.course;
+        ELSEIF (studentStatus = 'waiting') THEN
+            DELETE FROM WaitingList WHERE student=OLD.student AND course=OLD.course;
+        END IF;
+        RETURN OLD;
+    END;
+$$ LANGUAGE plpgsql;
 
---with a as (select (prereq_code) from Prerequisites WHERE(code=NEW.course)),
---b as (select (course) from PassedCourses WHERE(student=NEW.student AND (course IN(select prereq_code from a))))
---select (prereq_code) from a WHERE (prereq_code NOT IN(select course from b));
---SELECT COUNT(student) AS nbOfStudents FROM Registered WHERE course=NEW.course
+DROP TRIGGER IF EXISTS deleteRegistration ON Registrations;
+
+CREATE TRIGGER deleteRegistration
+    INSTEAD OF DELETE ON Registrations
+    FOR EACH ROW
+    EXECUTE FUNCTION unregisterStudent ();
+
