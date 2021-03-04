@@ -20,6 +20,7 @@ INSERT INTO Students VALUES ('4444444444', 'N4', 'ls4', 'Prog1');
 INSERT INTO Students VALUES ('5555555555', 'Nx', 'ls5', 'Prog2');
 INSERT INTO Students VALUES ('6666666666', 'Nx', 'ls6', 'Prog2');
 
+
 INSERT INTO Courses VALUES ('CCC111', 'C1', 22.5, 'Dep1');
 INSERT INTO Courses VALUES ('CCC222', 'C2', 20,   'Dep1');
 INSERT INTO Courses VALUES ('CCC333', 'C3', 30,   'Dep1');
@@ -70,6 +71,7 @@ INSERT INTO WaitingList VALUES ('3333333333', 'CCC222', 1);
 INSERT INTO WaitingList VALUES ('3333333333', 'CCC333', 1);
 INSERT INTO WaitingList VALUES ('2222222222', 'CCC333', 2);
 
+
 INSERT INTO Taken VALUES('2222222222', 'CCC111', 'U');
 INSERT INTO Taken VALUES('2222222222', 'CCC222', 'U');
 INSERT INTO Taken VALUES('2222222222', 'CCC444', 'U');
@@ -82,6 +84,33 @@ INSERT INTO Taken VALUES('4444444444', 'CCC444', '5');
 INSERT INTO Taken VALUES('5555555555', 'CCC111', '5');
 INSERT INTO Taken VALUES('5555555555', 'CCC333', '5');
 INSERT INTO Taken VALUES('5555555555', 'CCC444', '5');
+
+INSERT INTO Students VALUES ('10', 'Nx', 'ls634', 'Prog2');
+INSERT INTO Students VALUES ('11', 'Nx', 'ls623', 'Prog2');
+INSERT INTO Students VALUES ('12', 'Nx', 'ls6123', 'Prog2');
+INSERT INTO Students VALUES ('13', 'Nx', 'ls6121', 'Prog2');
+INSERT INTO Courses VALUES ('CCC10', 'C10', 50,   'Dep1');
+INSERT INTO Courses VALUES ('CCC11', 'C11', 50,   'Dep1');
+INSERT INTO Courses VALUES ('CCC12', 'C12', 50,   'Dep1');
+--10
+INSERT INTO LimitedCourses VALUES ('CCC10', 2);
+INSERT INTO Registered VALUES('10','CCC10');
+INSERT INTO Registered VALUES('11','CCC10');
+INSERT INTO WaitingList VALUES ('12', 'CCC10', 1);
+--DELETE FROM Registrations WHERE(student='10' AND course='CCC10');
+--11
+INSERT INTO LimitedCourses VALUES ('CCC11', 1);
+INSERT INTO Registered VALUES('10','CCC11');
+INSERT INTO WaitingList VALUES ('11', 'CCC11', 1);
+INSERT INTO WaitingList VALUES ('12', 'CCC11', 2);
+INSERT INTO WaitingList VALUES ('13', 'CCC11', 3);
+--DELETE FROM Registrations WHERE(student='12' AND course='CCC11');
+--12
+INSERT INTO LimitedCourses VALUES ('CCC12', 1);
+INSERT INTO Registered VALUES('10','CCC12');
+INSERT INTO Registered VALUES('11','CCC12');
+INSERT INTO WaitingList VALUES ('13', 'CCC12', 1);
+--DELETE FROM Registrations WHERE(student='10' AND course='CCC12');
 
 
 

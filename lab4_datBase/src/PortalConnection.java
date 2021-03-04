@@ -5,7 +5,7 @@ import java.util.Properties;
 public class PortalConnection {
 
     // For connecting to the portal database on your local machine
-    static final String DATABASE = "jdbc:postgresql://localhost/portal";
+    static final String DATABASE = "jdbc:postgresql://localhost/portal1";
     static final String USERNAME = "databases";
     static final String PASSWORD = "databaseslp3";
 
@@ -49,13 +49,18 @@ public class PortalConnection {
 
     // Unregister a student from a course, returns a tiny JSON document (as a String)
     public String unregister(String student, String courseCode){
-        String delete = "DELETE FROM Registrations WHERE(student = ? AND course=?);";
+        String delete = "DELETE FROM Registrations WHERE(student = '"+student+"' AND course='"+courseCode+"');";
+        //String delete = "DELETE FROM Registrations WHERE(student = ? AND course=?);";
         try{
             PreparedStatement ps = conn.prepareStatement(delete);
-            ps.setString(1,student);
-            ps.setString(2,courseCode);
+            //ps.setString(1,student);
+            //ps.setString(2,courseCode);
             int count = ps.executeUpdate();
-            return "{\"success\":true}";
+            if(count!=0){
+                return "{\"success\":true}";
+            } else {
+                return "{\"success\":false, \"error\":\""+"Student is not registered on this course"+"\"}";
+            }
 
         } catch (SQLException e){
             return "{\"success\":false, \"error\":\""+getError(e)+"\"}";
