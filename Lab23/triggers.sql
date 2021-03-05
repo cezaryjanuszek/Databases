@@ -58,6 +58,7 @@ CREATE OR REPLACE FUNCTION unregisterStudent () RETURNS TRIGGER AS $$
         limitedCapacity INT;
         studentCount INT;
     BEGIN
+    RAISE EXCEPTION 'ERROR: this student is not in the registrations for this course!';
         studentStatus := (SELECT status FROM Registrations WHERE student=OLD.student AND course=OLD.course);
 
         IF (NOT EXISTS (SELECT code FROM LimitedCourses WHERE code=OLD.course) ) THEN --unregister from unlimited course
@@ -96,11 +97,24 @@ CREATE OR REPLACE FUNCTION unregisterStudent () RETURNS TRIGGER AS $$
         RETURN OLD;
     END;
 $$ LANGUAGE plpgsql;
-
+CREATE OR REPLACE FUNCTION unregisterStudent2 () RETURNS TRIGGER AS $$
+    BEGIN
+        IF NOT FOUND THEN
+           RAISE EXCEPTION 'ERROR: this student is not in the registrations for this course!';
+        END IF;
+    END;
+$$ LANGUAGE plpgsql;
 DROP TRIGGER IF EXISTS deleteRegistration ON Registrations;
 
 CREATE TRIGGER deleteRegistration
     INSTEAD OF DELETE ON Registrations
     FOR EACH ROW
     EXECUTE FUNCTION unregisterStudent ();
+
+
+CREATE TRIGGER deleteRegistration2
+    BEFORE WHERE ON Registrations
+    FOR EACH ROW
+    EXECUTE FUNCTION unregisterStudent2 ();
+
 
