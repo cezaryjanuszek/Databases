@@ -27,16 +27,12 @@ INSERT INTO Courses VALUES ('CCC444', 'C4', 40,   'Dep1');
 INSERT INTO Courses VALUES ('CCC555', 'C5', 50,   'Dep1');
 
 --Added inserts for prerequisites
---INSERT INTO Prerequisites VALUES ('CCC111', 'CCC222');
---INSERT INTO Prerequisites VALUES ('CCC111', 'CCC555');
 INSERT INTO Prerequisites VALUES ('CCC444', 'CCC111');
 INSERT INTO Prerequisites VALUES ('CCC444', 'CCC333');
-INSERT INTO Prerequisites VALUES ('CCC555', 'CCC222');
+--INSERT INTO Prerequisites VALUES ('CCC555', 'CCC222');
 
 INSERT INTO LimitedCourses VALUES ('CCC222', 2);
 INSERT INTO LimitedCourses VALUES ('CCC333', 2);
---Added insert for trigger test purposes
-INSERT INTO LimitedCourses VALUES ('CCC111', 3);
 
 INSERT INTO Classifications VALUES ('math');
 INSERT INTO Classifications VALUES ('research');
@@ -50,7 +46,6 @@ INSERT INTO StudentBranches VALUES ('2222222222', 'B1', 'Prog1');
 INSERT INTO StudentBranches VALUES ('3333333333', 'B1', 'Prog2');
 INSERT INTO StudentBranches VALUES ('4444444444', 'B1', 'Prog1');
 
---INSERT INTO StudentBranches VALUES ('1111111111', 'B1', 'Prog2');
 
 INSERT INTO MandatoryProgram VALUES ('CCC111', 'Prog1');
 

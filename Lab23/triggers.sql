@@ -59,10 +59,8 @@ CREATE OR REPLACE FUNCTION unregisterStudent () RETURNS TRIGGER AS $$
         studentCount INT;
     BEGIN
         studentStatus := (SELECT status FROM Registrations WHERE student=OLD.student AND course=OLD.course);
-        IF (NOT EXISTS (SELECT student, course FROM Registrations WHERE student=OLD.student AND course=OLD.course)) THEN
-            RAISE EXCEPTION 'ERROR: this student is not in the registrations for this course!';
 
-        ELSEIF (NOT EXISTS (SELECT code FROM LimitedCourses WHERE code=OLD.course) ) THEN --unregister from unlimited course
+        IF (NOT EXISTS (SELECT code FROM LimitedCourses WHERE code=OLD.course) ) THEN --unregister from unlimited course
             DELETE FROM Registered WHERE student=OLD.student AND course=OLD.course;
 
         ELSEIF (studentStatus = 'registered') THEN
@@ -71,11 +69,11 @@ CREATE OR REPLACE FUNCTION unregisterStudent () RETURNS TRIGGER AS $$
             DELETE FROM Registered WHERE student=OLD.student AND course=OLD.course;
             studentCount := (SELECT COUNT(student) FROM Registered WHERE course=OLD.course); --count to check if not overfull
 
-            IF (EXISTS (SELECT course FROM WaitingList WHERE course=OLD.course) AND (studentCount<limitedCapacity)) THEN --limited with waiting list
-                studentToInsert := (SELECT student FROM WaitingList WHERE course=OLD.course AND position=1);
+            IF (EXISTS (SELECT course FROM courseQueuePositions WHERE course=OLD.course) AND (studentCount<limitedCapacity)) THEN --limited with waiting list
+                studentToInsert := (SELECT student FROM courseQueuePositions WHERE course=OLD.course AND place=1);
                 INSERT INTO Registered VALUES (studentToInsert,OLD.course);
                 --remove the student from waitinglist and update it
-                LastPosition:=(SELECT MAX(position) FROM WaitingList WHERE(course=OLD.course));
+                LastPosition:=(SELECT MAX(place) FROM courseQueuePositions WHERE(course=OLD.course));
                 DELETE FROM WaitingList WHERE student=studentToInsert AND course=OLD.course;
                 IF(1!=LastPosition) THEN
                     FOR counter IN 2..LastPosition loop
@@ -85,8 +83,8 @@ CREATE OR REPLACE FUNCTION unregisterStudent () RETURNS TRIGGER AS $$
             END IF;
 
         ELSEIF (studentStatus = 'waiting') THEN --remove from waiting list
-            currentPosition:=(SELECT position FROM WaitingList WHERE(student=OLD.student AND course=OLD.course));
-            LastPosition:=(SELECT MAX(position) FROM WaitingList WHERE(course=OLD.course));
+            currentPosition:=(SELECT place FROM courseQueuePositions WHERE(student=OLD.student AND course=OLD.course));
+            LastPosition:=(SELECT MAX(place) FROM courseQueuePositions WHERE(course=OLD.course));
             DELETE FROM WaitingList WHERE student=OLD.student AND course=OLD.course;
             IF(currentPosition!=LastPosition) THEN
                 FOR counter IN currentPosition+1..LastPosition loop
@@ -94,6 +92,7 @@ CREATE OR REPLACE FUNCTION unregisterStudent () RETURNS TRIGGER AS $$
                 END loop;
             END IF;
         END IF;
+
         RETURN OLD;
     END;
 $$ LANGUAGE plpgsql;
