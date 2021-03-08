@@ -1,3 +1,8 @@
+
+DROP SCHEMA public CASCADE;
+CREATE SCHEMA public;
+GRANT ALL ON SCHEMA public TO postgres;
+
 -----------------------
 -- Tables --
 -----------------------
@@ -139,22 +144,22 @@ FOREIGN KEY (course) REFERENCES LimitedCourses(code) );
 -----------------------
 
 --View BasicInformation(idnr, name, login, program, branch)
-CREATE VIEW BasicInformation AS
+CREATE OR REPLACE VIEW BasicInformation AS
  (SELECT Students.idnr,Students.name,Students.login,Students.program,StudentBranches.branch
   FROM Students LEFT JOIN StudentBranches ON  Students.idnr=StudentBranches.student);
 
 --View FinishedCourses(student, course, grade, credits)
-CREATE VIEW FinishedCourses AS
+CREATE OR REPLACE VIEW FinishedCourses AS
  (SELECT Taken.student,Taken.course,Taken.grade,Courses.credits
   FROM Taken INNER JOIN Courses ON Taken.course=Courses.code);
 
 --View PassedCourses(student, course, credits)
-CREATE VIEW PassedCourses AS
+CREATE OR REPLACE VIEW PassedCourses AS
  (SELECT student,course,credits FROM FinishedCourses WHERE grade IN('3','4','5'));
 
 
 --View Registrations(student, course, status)
-CREATE VIEW Registrations AS
+CREATE OR REPLACE VIEW Registrations AS
  ((SELECT student, course, 'registered' AS status
  FROM Registered)
  UNION
@@ -162,9 +167,7 @@ CREATE VIEW Registrations AS
  FROM WaitingList));
 
  --View UnreadMandatory
-
-
-CREATE VIEW UnreadMandatory AS
+CREATE OR REPLACE VIEW UnreadMandatory AS
 WITH StudentMandatory AS
   (SELECT Students.idnr as student,MandatoryProgram.course FROM Students RIGHT OUTER JOIN MandatoryProgram ON Students.program=MandatoryProgram.program
   UNION
@@ -174,7 +177,7 @@ SELECT student,course FROM StudentMandatory EXCEPT (SELECT student, course FROM 
 
 
 --View path to graduation
-CREATE VIEW PathToGraduation AS
+CREATE OR REPLACE VIEW PathToGraduation AS
 WITH
   TotalCredits AS
     (SELECT student, SUM(credits) AS total_credits FROM PassedCourses GROUP BY student),

@@ -13,51 +13,58 @@ public class TestPortal {
          // Use println instead of prettyPrint to get more compact output (if your raw JSON is already readable)
 
          //1 List info for a student.
-         System.out.println("Raw JSON: "+c.getInfo("2222222222"));
+         System.out.println("1: JSON student info: "+c.getInfo("2222222222"));
          pause();
-        //2 Register a student for an unrestricted course, and check that he/she ends up registered (print info again).
 
+         //2 Register a student for an unrestricted course, and check that he/she ends up registered (print info again).
          System.out.println("2: "+c.register("4444444444", "CCC555"));
-          System.out.println("Raw JSON: "+c.getInfo("4444444444"));
+         System.out.println("JSON student info: "+c.getInfo("4444444444"));
          pause();
-         //3 Register the same student for the same course again, and check that you get an error response.
+
+          //3 Register the same student for the same course again, and check that you get an error response.
           System.out.println("3: "+c.register("4444444444", "CCC555"));
           pause();
 
-        //4 Unregister the student from the course, and then unregister him/her again from the same course.
+          //4 Unregister the student from the course, and then unregister him/her again from the same course.
           // Check that the student is no longer registered and that the second unregistration gives an error response.
           System.out.println("4: "+c.unregister("4444444444", "CCC555"));
-          System.out.println("Raw JSON: "+c.getInfo("4444444444"));
+          System.out.println("JSON student info: "+c.getInfo("4444444444"));
           pause();
           System.out.println(c.unregister("4444444444", "CCC555"));
           pause();
-        //5 Register the student for a course that he/she doesn't have the prerequisites for, and check that an error is generated.
+
+          //5 Register the student for a course that he/she doesn't have the prerequisites for, and check that an error is generated.
           System.out.println("5: "+c.register("3333333333", "CCC444"));
           pause();
-        //6 Unregister a student from a restricted course that he/she is registered to, and which has at least two
+
+          //6 Unregister a student from a restricted course that he/she is registered to, and which has at least two
           // students in the queue. Register again to the same course and check that the student gets the correct (last) position in the waiting list.
-        System.out.println("6: "+c.unregister("10", "CCC11"));
-        pause();
-        System.out.println("6: "+c.register("10", "CCC11"));
-        pause();
-        //7 Unregister and re-register the same student for the same restricted course, and check that the student is
+          System.out.println("6: "+c.unregister("10", "CCC11"));
+          pause();
+          System.out.println("6: "+c.register("10", "CCC11"));
+          System.out.println("JSON course queue: "+c.getQueue("CCC11"));
+          pause();
+
+          //7 Unregister and re-register the same student for the same restricted course, and check that the student is
           // first removed and then ends up in the same position as before (last).
           System.out.println("7: "+c.unregister("10", "CCC11"));
-
-          System.out.println("7: "+c.register("10", "CCC11"));
+          System.out.println("JSON course queue: "+c.getQueue("CCC11"));
           pause();
+          System.out.println("7: "+c.register("10", "CCC11"));
+          System.out.println("JSON course queue: "+c.getQueue("CCC11"));
+          pause();
+
           //8 Unregister a student from an overfull course, i.e. one with more students registered than there are places
           // on the course (you need to set this situation up in the database directly). Check that no student was
           // moved from the queue to being registered as a result.
-
+          System.out.println("8: JSON overfull course queue: "+c.getQueue("CCC12"));
           System.out.println("8: "+c.unregister("10", "CCC12"));
+          System.out.println("8: JSON overfull course queue: "+c.getQueue("CCC12"));
           pause();
 
           //9 Unregister with the SQL injection you introduced, causing all (or almost all?) registrations to disappear.
           System.out.println("9: "+c.unregister("10", "CCC12' OR 'a'='a"));
-
-
-
+          System.out.println(c.getRegistrations());
 
 
       } catch (ClassNotFoundException e) {

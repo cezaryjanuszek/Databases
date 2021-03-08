@@ -13,15 +13,15 @@ CREATE OR REPLACE FUNCTION registerStudent () RETURNS TRIGGER AS $$
         maxPos := (SELECT MAX(position) FROM WaitingList WHERE course=NEW.course);
 
         IF (EXISTS (SELECT student, course FROM Registrations WHERE student=NEW.student AND course=NEW.course) ) THEN
-            RAISE EXCEPTION 'ERROR: this student is already in the registrations for this course!';
+            RAISE EXCEPTION 'This student is already in the registrations for this course!';
 
         ELSEIF (EXISTS (SELECT student, course FROM PassedCourses WHERE student=NEW.student AND course=NEW.course) ) THEN
-                    RAISE EXCEPTION 'ERROR: this student has already passed this course!';
+                    RAISE EXCEPTION 'This student has already passed this course!';
 
         ELSEIF ( EXISTS (WITH a AS (SELECT (prereq_code) FROM Prerequisites WHERE(code=NEW.course)),
                      b AS (select (course) FROM PassedCourses WHERE(student=NEW.student AND (course IN(SELECT prereq_code FROM a))))
                      SELECT (prereq_code) FROM a WHERE (prereq_code NOT IN(SELECT course FROM b)))) THEN
-            RAISE EXCEPTION 'ERROR: this student did not meet all the prerequisites for this course!';
+            RAISE EXCEPTION 'This student did not meet all the prerequisites for this course!';
             
         ELSEIF (EXISTS (SELECT code FROM LimitedCourses WHERE code=NEW.course) ) THEN
             limitedCapacity := (SELECT capacity FROM LimitedCourses WHERE code=NEW.course);
@@ -58,7 +58,6 @@ CREATE OR REPLACE FUNCTION unregisterStudent () RETURNS TRIGGER AS $$
         limitedCapacity INT;
         studentCount INT;
     BEGIN
-    RAISE EXCEPTION 'ERROR: this student is not in the registrations for this course!';
         studentStatus := (SELECT status FROM Registrations WHERE student=OLD.student AND course=OLD.course);
 
         IF (NOT EXISTS (SELECT code FROM LimitedCourses WHERE code=OLD.course) ) THEN --unregister from unlimited course
@@ -97,13 +96,7 @@ CREATE OR REPLACE FUNCTION unregisterStudent () RETURNS TRIGGER AS $$
         RETURN OLD;
     END;
 $$ LANGUAGE plpgsql;
-CREATE OR REPLACE FUNCTION unregisterStudent2 () RETURNS TRIGGER AS $$
-    BEGIN
-        IF NOT FOUND THEN
-           RAISE EXCEPTION 'ERROR: this student is not in the registrations for this course!';
-        END IF;
-    END;
-$$ LANGUAGE plpgsql;
+
 DROP TRIGGER IF EXISTS deleteRegistration ON Registrations;
 
 CREATE TRIGGER deleteRegistration
@@ -111,10 +104,5 @@ CREATE TRIGGER deleteRegistration
     FOR EACH ROW
     EXECUTE FUNCTION unregisterStudent ();
 
-
-CREATE TRIGGER deleteRegistration2
-    BEFORE WHERE ON Registrations
-    FOR EACH ROW
-    EXECUTE FUNCTION unregisterStudent2 ();
 
 

@@ -26,6 +26,7 @@ select finishedcourses.student,
 json_agg(json_build_object('course',courses.name,'code',finishedcourses.course,'credits',finishedcourses.credits,'grade',finishedcourses.grade))
 from finishedcourses JOIN courses on(finishedcourses.course=courses.code) WHERE finishedcourses.student='4444444444';
 
+--StudentInfo JSON
 SELECT json_build_object ('student', idnr, 'name', name, 'login', login, 'program', program, 'branch', branch,
 'finished', (SELECT COALESCE (json_agg(json_build_object('course', name, 'code', course, 'credits', Courses.credits, 'grade', grade)), '[]')
                 FROM FinishedCourses JOIN Courses ON (course=code) WHERE student=?),
@@ -33,3 +34,11 @@ SELECT json_build_object ('student', idnr, 'name', name, 'login', login, 'progra
                 FROM Registrations JOIN Courses ON (course=code) WHERE student=?), 'seminarCourses', seminarCourses,
 'mathCredits', mathCredits, 'researchCredits', researchCredits, 'totalCredits', totalCredits, 'canGraduate', qualified ) AS jsondata
 FROM BasicInformation JOIN PathToGraduation ON (idnr=student) WHERE idnr=?;
+
+--courseQueuePositions JSON
+SELECT json_build_object('course', course,'courseQueue', (SELECT COALESCE (json_agg(json_build_object('student', student, 'place', place)), '[]')
+FROM courseQueuePositions WHERE course='CCC111')) AS jsonQueue FROM courseQueuePositions WHERE course='CCC111' LIMIT 1;
+
+--Registrations JSON
+SELECT json_build_object('registrations', (SELECT COALESCE (json_agg(json_build_object('student', student, 'course', course, 'status', status)), '[]'))) as jsonRegistrations
+FROM Registrations;

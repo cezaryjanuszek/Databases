@@ -5,9 +5,9 @@ import java.util.Properties;
 public class PortalConnection {
 
     // For connecting to the portal database on your local machine
-    static final String DATABASE = "jdbc:postgresql://localhost/portal1";
-    static final String USERNAME = "databases";
-    static final String PASSWORD = "databaseslp3";
+    static final String DATABASE = "jdbc:postgresql://localhost/portal";
+    static final String USERNAME = "postgres";
+    static final String PASSWORD = "postgres";
 
     // For connecting to the chalmers database server (from inside chalmers)
     // static final String DATABASE = "jdbc:postgresql://brage.ita.chalmers.se/";
@@ -65,14 +65,12 @@ public class PortalConnection {
         } catch (SQLException e){
             return "{\"success\":false, \"error\":\""+getError(e)+"\"}";
         }
-     // return "{\"success\":false, \"error\":\"Unregistration is not implemented yet :(\"}";
     }
 
     // Return a JSON document containing lots of information about a student, it should validate against the schema found in information_schema.json
     public String getInfo(String student) throws SQLException{
         
         try(PreparedStatement st = conn.prepareStatement(
-            // replace this with something more useful
             "SELECT json_build_object ('student', idnr, 'name', name, 'login', login, 'program', program, 'branch', branch,\n" +
                     "'finished', (SELECT COALESCE (json_agg(json_build_object('course', name, 'code', course, 'credits', Courses.credits, 'grade', grade)), '[]')\n" +
                     "                FROM FinishedCourses JOIN Courses ON (course=code) WHERE student=?),\n" +
@@ -95,6 +93,40 @@ public class PortalConnection {
               return "{\"student\":\"does not exist :(\"}"; 
             
         } 
+    }
+
+    //Added function: return a JSON document for the course queue
+    public String getQueue(String course) throws SQLException{
+        try(PreparedStatement st = conn.prepareStatement(
+                "SELECT json_build_object('course', course,'courseQueue', (SELECT COALESCE (json_agg(json_build_object('student', student, 'place', place)), '[]')\n" +
+                        "FROM courseQueuePositions WHERE course=?)) AS jsonQueue FROM courseQueuePositions WHERE course=? LIMIT 1;"
+            );
+        ){
+            st.setString(1, course);
+            st.setString(2, course);
+
+            ResultSet rs = st.executeQuery();
+
+            if(rs.next())
+                return rs.getString("jsonQueue");
+            else
+                return "{\"CourseQueue\":\"does not exist :(\"}";
+        }
+    }
+
+    public String getRegistrations() throws SQLException{
+        try(PreparedStatement st = conn.prepareStatement(
+                "SELECT json_build_object('registrations', (SELECT COALESCE (json_agg(json_build_object('student', student, 'course', course, 'status', status)), '[]'))) as jsonRegistrations\n" +
+                        "FROM Registrations;"
+            );
+        ){
+            ResultSet rs = st.executeQuery();
+
+            if(rs.next())
+                return rs.getString("jsonRegistrations");
+            else
+                return "{\"Registrations\":\"do not exist :(\"}";
+        }
     }
 
     // This is a hack to turn an SQLException into a JSON string error message. No need to change.
